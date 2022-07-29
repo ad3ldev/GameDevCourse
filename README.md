@@ -6,3 +6,4 @@ Provided by [freeCodeCamp.org](https://www.freecodecamp.org/news/learn-javascrip
 
 1. Sprite Animations
 2. Parallax backgrounds
+3. NPC movement
