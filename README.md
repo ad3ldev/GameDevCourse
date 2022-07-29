@@ -2,4 +2,7 @@
 
 Provided by [freeCodeCamp.org](https://www.freecodecamp.org/news/learn-javascript-game-development-full-course/)
 
-## 1. Sprites Animation
+## Lessons
+
+1. Sprite Animations
+2. Parallax backgrounds
