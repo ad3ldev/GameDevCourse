@@ -225,6 +225,7 @@ function animate(timestamp) {
 	[...particles, ...ravens, ...explosions].forEach((object) => object.draw());
 	ravens = ravens.filter((object) => !object.markedForDeletion);
 	explosions = explosions.filter((object) => !object.markedForDeletion);
+	particles = particles.filter((object) => !object.markedForDeletion);
 	if (!gameOver) {
 		requestAnimationFrame(animate);
 	} else {
