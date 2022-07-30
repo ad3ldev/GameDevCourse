@@ -209,7 +209,7 @@ window.addEventListener("load", () => {
 		}
 	}
 	let enemyTimer = 0;
-	let enemyInterval = 1000;
+	let enemyInterval = 2000;
 	let randomEnemyInterval = Math.random() * 1000 + 500;
 
 	function handleEnemies(deltaTime) {
@@ -259,7 +259,7 @@ window.addEventListener("load", () => {
 		ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 		const deltaTime = timestamp - lastTime;
 		lastTime = timestamp;
-		// background.update();
+		background.update();
 		background.draw(ctx);
 		handleEnemies(deltaTime);
 		player.update(input, deltaTime, enemies);
