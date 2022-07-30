@@ -8,3 +8,4 @@ Provided by [freeCodeCamp.org](https://www.freecodecamp.org/news/learn-javascrip
 2. Parallax backgrounds
 3. NPC movement
 4. Triggered event based animations
+5. Raven game
