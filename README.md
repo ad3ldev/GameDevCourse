@@ -11,3 +11,4 @@ Provided by [freeCodeCamp.org](https://www.freecodecamp.org/news/learn-javascrip
 5. Raven game
 6. Enemy types
 7. Easy Side-Scroller Game with mobile support
+8. State management
