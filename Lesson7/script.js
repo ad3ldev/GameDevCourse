@@ -2,8 +2,15 @@ window.addEventListener("load", () => {
 	/** @type {HTMLCanvasElement} */
 	const canvas = document.querySelector("#canvas1");
 	const ctx = canvas.getContext("2d");
-	const CANVAS_WIDTH = (canvas.width = 800);
-	const CANVAS_HEIGHT = (canvas.height = 720);
+	canvas.width = 1200;
+	canvas.height = 720;
+
+	const fullScreenBtn = fullScreenButton;
+
+	fullScreenBtn.addEventListener("click", () => {
+		toggleFullScreen();
+	});
+
 	let score = 0;
 	let gameOver = false;
 
@@ -12,6 +19,8 @@ window.addEventListener("load", () => {
 	class InputHandler {
 		constructor() {
 			this.keys = [];
+			this.touchY = 0;
+			this.touchThreshold = 30;
 			window.addEventListener("keydown", ({ key }) => {
 				if (
 					(key == "ArrowDown" ||
@@ -21,6 +30,8 @@ window.addEventListener("load", () => {
 					this.keys.indexOf(key) === -1
 				) {
 					this.keys.push(key);
+				} else if (key == "Enter" && gameOver) {
+					restartGame();
 				}
 			});
 			window.addEventListener("keyup", ({ key }) => {
@@ -33,6 +44,30 @@ window.addEventListener("load", () => {
 					this.keys.splice(this.keys.indexOf(key), 1);
 				}
 			});
+			window.addEventListener("touchstart", (e) => {
+				this.touchY = e.changedTouches[0].pageY;
+			});
+			window.addEventListener("touchmove", (e) => {
+				const swipeDistance = e.changedTouches[0].pageY - this.touchY;
+				if (
+					swipeDistance < -this.touchThreshold &&
+					this.keys.indexOf("swipe up") === -1
+				) {
+					this.keys.push("swipe up");
+				} else if (
+					swipeDistance > this.touchThreshold &&
+					this.keys.indexOf("swipe down") === -1
+				) {
+					this.keys.push("swipe down");
+					if (gameOver) {
+						restartGame();
+					}
+				}
+			});
+			window.addEventListener("touchend", (e) => {
+				this.keys.splice(this.keys.indexOf("swipe up"), 1);
+				this.keys.splice(this.keys.indexOf("swipe down"), 1);
+			});
 		}
 	}
 	class Player {
@@ -43,7 +78,7 @@ window.addEventListener("load", () => {
 			this.spriteHeight = 200;
 			this.width = this.spriteWidth;
 			this.height = this.spriteHeight;
-			this.x = 0;
+			this.x = 100;
 			this.y = this.gameHeight - this.height;
 			this.image = playerImage;
 			this.frameX = 0;
@@ -55,6 +90,13 @@ window.addEventListener("load", () => {
 			this.vx = 0;
 			this.vy = 0;
 			this.weight = 1;
+		}
+		restart() {
+			this.x = 100;
+			this.y = this.gameHeight - this.height;
+			this.frameX = 0;
+			this.maxFrame = 8;
+			this.frameY = 0;
 		}
 		draw(context) {
 			context.drawImage(
@@ -72,11 +114,13 @@ window.addEventListener("load", () => {
 		update(input, deltaTime, enemies) {
 			enemies.forEach((enemy) => {
 				const dx =
-					enemy.x + enemy.width / 2 - (this.x + this.width / 2);
+					enemy.x + enemy.width / 2 - 20 - (this.x + this.width / 2);
 				const dy =
-					enemy.y + enemy.height / 2 - (this.y + this.height / 2);
+					enemy.y +
+					enemy.height / 2 -
+					(this.y + this.height / 2 + 20);
 				const distance = Math.sqrt(dx * dx + dy * dy);
-				if (distance < enemy.width / 2 + this.width / 2) {
+				if (distance < enemy.width / 3 + this.width / 3) {
 					gameOver = true;
 				}
 			});
@@ -95,7 +139,11 @@ window.addEventListener("load", () => {
 				this.vx = 5;
 			} else if (input.keys.indexOf("ArrowLeft") > -1) {
 				this.vx = -5;
-			} else if (input.keys.indexOf("ArrowUp") > -1 && this.onGround()) {
+			} else if (
+				(input.keys.indexOf("ArrowUp") > -1 ||
+					input.keys.indexOf("swipe up") > -1) &&
+				this.onGround()
+			) {
 				this.vy -= 30;
 			} else {
 				this.vx = 0;
@@ -159,6 +207,9 @@ window.addEventListener("load", () => {
 				this.x = 0;
 			}
 		}
+		restart() {
+			this.x = 0;
+		}
 	}
 	class Enemy {
 		constructor(gameWidth, gameHeight) {
@@ -214,7 +265,7 @@ window.addEventListener("load", () => {
 
 	function handleEnemies(deltaTime) {
 		if (enemyTimer > enemyInterval + randomEnemyInterval) {
-			enemies.push(new Enemy(CANVAS_WIDTH, CANVAS_HEIGHT));
+			enemies.push(new Enemy(canvas.width, canvas.height));
 			randomEnemyInterval = Math.random() * 1000 + 500;
 			enemyTimer = 0;
 		} else {
@@ -236,27 +287,46 @@ window.addEventListener("load", () => {
 			context.textAlign = "center";
 			context.fillStyle = "black";
 			context.fillText(
-				`GAME OVER, try again`,
-				CANVAS_WIDTH / 2,
-				CANVAS_HEIGHT / 2,
+				`GAME OVER, press Enter or Swipe Down to Restart`,
+				canvas.width / 2,
+				canvas.height / 2,
 			);
 			context.fillStyle = "white";
 			context.fillText(
-				`GAME OVER, try again`,
-				CANVAS_WIDTH / 2 + 2,
-				CANVAS_HEIGHT / 2 + 2,
+				`GAME OVER, press Enter or Swipe Down to Restart`,
+				canvas.width / 2 + 2,
+				canvas.height / 2 + 2,
 			);
 		}
 	}
 
 	const input = new InputHandler();
-	const player = new Player(CANVAS_WIDTH, CANVAS_HEIGHT);
-	const background = new Background(CANVAS_WIDTH, CANVAS_HEIGHT);
+	const player = new Player(canvas.width, canvas.height);
+	const background = new Background(canvas.width, canvas.height);
+
+	function restartGame() {
+		player.restart();
+		background.restart();
+		score = 0;
+		gameOver = false;
+		enemies = [];
+		animate(0);
+	}
+
+	function toggleFullScreen() {
+		if (!document.fullscreenElement) {
+			canvas.requestFullscreen().catch((error) => {
+				alert(`${error.message} can't be fullscreen`);
+			});
+		} else {
+			document.exitFullscreen();
+		}
+	}
 
 	let lastTime = 0;
 
 	function animate(timestamp) {
-		ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		const deltaTime = timestamp - lastTime;
 		lastTime = timestamp;
 		background.update();
